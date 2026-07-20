@@ -171,6 +171,49 @@
             menu.classList.toggle('open');
             if (arrow) arrow.classList.toggle('rotate-180');
         }
+
+        // SweetAlert session messages
+        document.addEventListener('DOMContentLoaded', function() {
+            @if(session('success'))
+            Swal.fire({
+                icon: 'success',
+                title: 'Success!',
+                text: '{{ session('success') }}',
+                confirmButtonColor: '#024938',
+                timer: 3500,
+                timerProgressBar: true,
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+            });
+            @endif
+            @if(session('error'))
+            Swal.fire({
+                icon: 'error',
+                title: 'Oops...',
+                text: '{{ session('error') }}',
+                confirmButtonColor: '#024938',
+            });
+            @endif
+        });
+
+        // Confirm dialog helper using SweetAlert
+        function confirmAction(formId, title, text) {
+            Swal.fire({
+                title: title || 'Are you sure?',
+                text: text || "You won't be able to revert this!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#024938',
+                cancelButtonColor: '#dc2626',
+                confirmButtonText: 'Yes, proceed!',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById(formId).submit();
+                }
+            });
+        }
     </script>
     @stack('scripts')
 </body>
