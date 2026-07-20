@@ -12,13 +12,6 @@
     <button onclick="document.getElementById('modal-table').classList.remove('hidden')" class="px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">+ Add Table</button>
 </div>
 
-@if(session('success'))
-<div class="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm flex items-center gap-2">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-    {{ session('success') }}
-</div>
-@endif
-
 <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
     @foreach($tables as $table)
     <div class="bg-white rounded-xl border p-4 card-hover">

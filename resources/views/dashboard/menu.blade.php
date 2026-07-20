@@ -15,13 +15,6 @@
     </div>
 </div>
 
-@if(session('success'))
-<div class="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm flex items-center gap-2">
-    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-    {{ session('success') }}
-</div>
-@endif
-
 <div class="space-y-6">
     @foreach($categories as $category)
     <div class="bg-white rounded-xl border overflow-hidden">
