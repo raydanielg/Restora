@@ -9,6 +9,11 @@ use App\Http\Controllers\StaffController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingsController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\KitchenController;
+use App\Http\Controllers\WaiterController;
+use App\Http\Controllers\ReceptionController;
+use App\Http\Controllers\Auth\StaffLoginController;
 
 // Landing page
 Route::get('/', function () {
@@ -29,6 +34,17 @@ Route::get('/about', function () {
 })->name('about');
 
 Auth::routes();
+
+// Staff login (with 6-digit code)
+Route::get('/staff-login', [StaffLoginController::class, 'showLoginForm'])->name('staff.login.form');
+Route::post('/staff-login', [StaffLoginController::class, 'login'])->name('staff.login');
+
+// Customer public routes (QR ordering)
+Route::get('/r/{slug}', [CustomerController::class, 'restaurant'])->name('customer.restaurant');
+Route::get('/table/{qrCode}', [CustomerController::class, 'table'])->name('customer.table');
+Route::post('/customer/order', [CustomerController::class, 'placeOrder'])->name('customer.order.place');
+Route::get('/order/{orderNumber}', [CustomerController::class, 'track'])->name('customer.track');
+Route::get('/order/{orderNumber}/status', [CustomerController::class, 'status'])->name('customer.order.status');
 
 // Onboarding (after registration, before dashboard)
 Route::middleware('auth')->group(function () {
@@ -72,4 +88,21 @@ Route::middleware(['auth'])->group(function () {
     // Settings
     Route::get('/settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('/settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // Kitchen (Chef)
+    Route::get('/kitchen', [KitchenController::class, 'index'])->name('kitchen.index');
+    Route::patch('/kitchen/orders/{order}/status', [KitchenController::class, 'updateStatus'])->name('kitchen.status');
+
+    // Waiter
+    Route::get('/waiter', [WaiterController::class, 'index'])->name('waiter.index');
+    Route::patch('/waiter/orders/{order}/serve', [WaiterController::class, 'serve'])->name('waiter.serve');
+    Route::post('/waiter/orders/{order}/collect', [WaiterController::class, 'collectCash'])->name('waiter.collect');
+
+    // Reception
+    Route::get('/reception', [ReceptionController::class, 'index'])->name('reception.index');
+    Route::patch('/reception/orders/{order}/accept', [ReceptionController::class, 'acceptOrder'])->name('reception.accept');
+    Route::patch('/reception/orders/{order}/reject', [ReceptionController::class, 'rejectOrder'])->name('reception.reject');
+    Route::patch('/reception/payments/{payment}/confirm', [ReceptionController::class, 'confirmPayment'])->name('reception.payment.confirm');
+    Route::post('/reception/orders/{order}/payment', [ReceptionController::class, 'recordPayment'])->name('reception.payment.record');
+    Route::get('/reception/orders/{order}/receipt', [ReceptionController::class, 'receipt'])->name('reception.receipt');
 });
