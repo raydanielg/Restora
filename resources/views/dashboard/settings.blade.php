@@ -1,0 +1,113 @@
+@extends('layouts.dashboard')
+
+@section('title', 'Settings - Restora')
+@section('page_title', 'Restaurant Settings')
+
+@section('content')
+@if(session('success'))
+<div class="mb-4 p-3 rounded-lg bg-emerald-50 border border-emerald-200 text-emerald-700 text-sm flex items-center gap-2">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    {{ session('success') }}
+</div>
+@endif
+
+<form action="{{ route('settings.update') }}" method="POST">
+    @csrf
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {{-- Restaurant Info --}}
+        <div class="bg-white rounded-xl border p-5">
+            <h3 class="text-sm font-bold text-gray-900 mb-4">Restaurant Information</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Restaurant Name</label>
+                    <input type="text" name="name" value="{{ $restaurant->name }}" required class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-200 outline-none text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Type</label>
+                        <select name="type" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm">
+                            @foreach(['restaurant' => 'Restaurant', 'cafe' => 'Cafe', 'bar' => 'Bar', 'fast_food' => 'Fast Food'] as $val => $label)
+                            <option value="{{ $val }}" {{ $restaurant->type === $val ? 'selected' : '' }}>{{ $label }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Currency</label>
+                        <input type="text" name="currency" value="{{ $restaurant->currency }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                    <textarea name="description" rows="3" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm">{{ $restaurant->description }}</textarea>
+                </div>
+            </div>
+        </div>
+
+        {{-- Contact Info --}}
+        <div class="bg-white rounded-xl border p-5">
+            <h3 class="text-sm font-bold text-gray-900 mb-4">Contact & Location</h3>
+            <div class="space-y-4">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+                        <input type="text" name="phone" value="{{ $restaurant->phone }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                        <input type="email" name="email" value="{{ $restaurant->email }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Address</label>
+                    <input type="text" name="address" value="{{ $restaurant->address }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+                    <input type="text" name="location" value="{{ $restaurant->location }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm" placeholder="e.g. Dar es Salaam">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">TIN Number</label>
+                    <input type="text" name="tin_number" value="{{ $restaurant->tin_number }}" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm">
+                </div>
+            </div>
+        </div>
+
+        {{-- Financial Settings --}}
+        <div class="bg-white rounded-xl border p-5">
+            <h3 class="text-sm font-bold text-gray-900 mb-4">Financial Settings</h3>
+            <div class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Tax Rate (%)</label>
+                    <input type="number" name="tax_rate" value="{{ $restaurant->tax_rate }}" step="0.01" min="0" max="100" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Service Charge (%)</label>
+                    <input type="number" name="service_charge" value="{{ $restaurant->service_charge }}" step="0.01" min="0" max="100" class="w-full px-3 py-2 rounded-lg border border-gray-200 focus:border-emerald-500 outline-none text-sm">
+                </div>
+            </div>
+        </div>
+
+        {{-- Status --}}
+        <div class="bg-white rounded-xl border p-5">
+            <h3 class="text-sm font-bold text-gray-900 mb-4">Account Status</h3>
+            <div class="space-y-3">
+                <div class="flex items-center justify-between p-3 rounded-lg border {{ $restaurant->status === 'approved' ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200' }}">
+                    <div>
+                        <p class="text-sm font-medium text-gray-900">Verification Status</p>
+                        <p class="text-xs text-gray-500">{{ ucfirst($restaurant->status) }}</p>
+                    </div>
+                    <span class="w-3 h-3 rounded-full {{ $restaurant->status === 'approved' ? 'bg-emerald-500' : 'bg-amber-500' }} animate-pulse"></span>
+                </div>
+                <div class="p-3 rounded-lg bg-gray-50 border border-gray-200">
+                    <p class="text-xs text-gray-500">Your restaurant ID: <span class="font-mono font-medium text-gray-700">#{{ $restaurant->id }}</span></p>
+                    <p class="text-xs text-gray-500 mt-1">Member since: <span class="font-medium text-gray-700">{{ $restaurant->created_at->format('M d, Y') }}</span></p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="mt-6 flex justify-end">
+        <button type="submit" class="px-6 py-2.5 text-sm font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">Save Changes</button>
+    </div>
+</form>
+@endsection
