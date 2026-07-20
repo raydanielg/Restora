@@ -27,6 +27,21 @@ class Restaurant extends Model
         ];
     }
 
+    protected static function booted(): void
+    {
+        static::creating(function (Restaurant $restaurant) {
+            if (empty($restaurant->slug)) {
+                $base = \Illuminate\Support\Str::slug($restaurant->name);
+                $slug = $base;
+                $i = 1;
+                while (static::where('slug', $slug)->exists()) {
+                    $slug = $base . '-' . $i++;
+                }
+                $restaurant->slug = $slug;
+            }
+        });
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
