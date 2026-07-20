@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>{{ $restaurant->name }} - Menu</title>
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}?v=2">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        emerald: { 50:'#e6f5f1',100:'#b3e0d4',200:'#80cbc0',300:'#4db5a8',400:'#1a9f8e',500:'#024938',600:'#023d30',700:'#013028',800:'#01241f',900:'#001816' },
+                        gold: { 50:'#fff5e0',100:'#ffe6b3',200:'#ffd680',300:'#ffc64d',400:'#ffb71a',500:'#f9ac00',600:'#d49700',700:'#b07c00',800:'#8c6100',900:'#684600' }
+                    },
+                    fontFamily: { sans: ['Nunito', 'sans-serif'] }
+                }
+            }
+        }
+    </script>
+    <style>
+        body { font-family: 'Nunito', sans-serif; }
+        .cat-pill.active { background: #024938; color: white; }
+        @keyframes slideUp { from { transform: translateY(100%) } to { transform: translateY(0) } }
+        .slide-up { animation: slideUp 0.3s ease-out; }
+        @keyframes bounce-badge { 0%,100% { transform: scale(1) } 50% { transform: scale(1.3) } }
+        .badge-bounce { animation: bounce-badge 0.3s ease; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+</head>
+<body class="bg-gray-50 pb-24">
+
+{{-- Header --}}
+<div class="bg-gradient-to-br from-emerald-700 to-emerald-900 text-white">
+    <div class="max-w-lg mx-auto px-4 pt-6 pb-5">
+        <div class="flex items-center gap-3">
+            <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+                @if($restaurant->logo)
+                <img src="{{ asset($restaurant->logo) }}" class="w-full h-full object-cover rounded-xl" alt="{{ $restaurant->name }}">
+                @else
+                <span class="text-xl font-bold text-gold-400">{{ strtoupper(substr($restaurant->name, 0, 1)) }}</span>
+                @endif
+            </div>
+            <div class="flex-1 min-w-0">
+                <h1 class="text-lg font-bold truncate">{{ $restaurant->name }}</h1>
+                <p class="text-xs text-emerald-200 truncate">{{ $restaurant->address ?? $restaurant->location }}</p>
+            </div>
+        </div>
+        @if($table)
+        <div class="mt-3 inline-flex items-center gap-1.5 bg-gold-500/20 border border-gold-400/40 rounded-full px-3 py-1">
+            <svg class="w-3.5 h-3.5 text-gold-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
+            <span class="text-xs font-bold text-gold-200">{{ $table->table_number }}</span>
+        </div>
+        @endif
+    </div>
+</div>
+
+{{-- Category Pills --}}
+<div class="sticky top-0 z-30 bg-white border-b shadow-sm">
+    <div class="max-w-lg mx-auto px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
+        <button onclick="filterCategory('all', this)" class="cat-pill active shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border border-gray-200 text-gray-600 transition-colors">All</button>
+        @foreach($categories as $category)
+        <button onclick="filterCategory('cat-{{ $category->id }}', this)" class="cat-pill shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border border-gray-200 text-gray-600 transition-colors">{{ $category->name }}</button>
+        @endforeach
+    </div>
+</div>
+
+{{-- Menu Items --}}
+<div class="max-w-lg mx-auto px-4 py-4 space-y-6">
+    @foreach($categories as $category)
+    <div class="menu-section" data-cat="cat-{{ $category->id }}">
+        <h2 class="text-sm font-bold text-gray-800 mb-3">{{ $category->name }}</h2>
+        <div class="space-y-3">
+            @foreach($category->menuItems as $item)
+            <div class="bg-white rounded-xl border p-3 flex gap-3 items-center">
+                <div class="w-16 h-16 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 overflow-hidden">
+                    @if($item->image)
+                    <img src="{{ asset($item->image) }}" class="w-full h-full object-cover" alt="{{ $item->name }}">
+                    @else
+                    <span class="text-lg font-bold text-emerald-300">{{ strtoupper(substr($item->name, 0, 1)) }}</span>
+                    @endif
+                </div>
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-900 leading-tight">{{ $item->name }}</p>
+                    <p class="text-[11px] text-gray-400 line-clamp-1 mt-0.5">{{ $item->description }}</p>
+                    <p class="text-sm font-extrabold text-emerald-600 mt-1">{{ $restaurant->currency }} {{ number_format($item->price) }}</p>
+                </div>
+                <div class="shrink-0 flex flex-col items-center gap-1">
+                    <div class="flex items-center gap-2" id="ctrl-{{ $item->id }}">
+                        <button onclick="addToCart({{ $item->id }}, '{{ addslashes($item->name) }}', {{ $item->price }})" class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 active:scale-95 transition-all shadow-md">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+            @endforeach
+        </div>
+    </div>
+    @endforeach
+
+    @if($categories->isEmpty())
+    <div class="text-center py-16 text-gray-400">
+        <p class="font-medium">Menu is not available yet</p>
+    </div>
+    @endif
+</div>
+
+{{-- Floating Cart Button --}}
+<div id="cartBar" class="hidden fixed bottom-0 left-0 right-0 z-40 p-4">
+    <div class="max-w-lg mx-auto">
+        <button onclick="openCart()" class="w-full bg-emerald-700 hover:bg-emerald-800 text-white rounded-2xl px-5 py-4 flex items-center justify-between shadow-2xl active:scale-[0.99] transition-all">
+            <div class="flex items-center gap-2.5">
+                <div class="relative">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                    <span id="cartBadge" class="absolute -top-2 -right-2 w-5 h-5 bg-gold-500 text-emerald-900 text-[10px] font-extrabold rounded-full flex items-center justify-center">0</span>
+                </div>
+                <span class="text-sm font-bold">View Cart</span>
+            </div>
+            <span id="cartTotal" class="text-sm font-extrabold">{{ $restaurant->currency }} 0</span>
+        </button>
+    </div>
+</div>
+
+{{-- Cart Drawer --}}
+<div id="cartDrawer" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/50" onclick="closeCart()"></div>
+    <div class="slide-up absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[85vh] flex flex-col">
+        <div class="max-w-lg mx-auto w-full flex flex-col max-h-[85vh]">
+            <div class="p-4 border-b flex items-center justify-between shrink-0">
+                <h3 class="text-base font-bold text-gray-900">Your Order</h3>
+                <button onclick="closeCart()" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div id="cartItems" class="flex-1 overflow-y-auto p-4 space-y-3"></div>
+            <div class="p-4 border-t bg-gray-50 shrink-0 space-y-3">
+                <div class="space-y-1 text-xs">
+                    <div class="flex justify-between text-gray-500"><span>Subtotal</span><span id="sumSubtotal">-</span></div>
+                    <div class="flex justify-between text-gray-500"><span>Tax ({{ $restaurant->tax_rate }}%)</span><span id="sumTax">-</span></div>
+                    @if($restaurant->service_charge > 0)
+                    <div class="flex justify-between text-gray-500"><span>Service ({{ $restaurant->service_charge }}%)</span><span id="sumService">-</span></div>
+                    @endif
+                    <div class="flex justify-between text-sm font-extrabold text-gray-900 pt-1"><span>Total</span><span id="sumTotal">-</span></div>
+                </div>
+                <input type="text" id="custName" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-emerald-500" placeholder="Your name (optional)">
+                <input type="text" id="custPhone" class="w-full px-4 py-2.5 rounded-xl border border-gray-200 text-sm outline-none focus:border-emerald-500" placeholder="Phone number (optional)">
+                <button onclick="placeOrder()" id="placeBtn" class="w-full py-3.5 bg-emerald-700 hover:bg-emerald-800 text-white rounded-xl text-sm font-extrabold active:scale-[0.99] transition-all">
+                    Place Order
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const CURRENCY = '{{ $restaurant->currency }}';
+const TAX_RATE = {{ $restaurant->tax_rate }};
+const SERVICE_RATE = {{ $restaurant->service_charge }};
+const RESTAURANT_ID = {{ $restaurant->id }};
+const TABLE_ID = {{ $table?->id ?? 'null' }};
+let cart = {};
+
+function nf(n) { return Math.round(n).toLocaleString(); }
+
+function addToCart(id, name, price) {
+    if (!cart[id]) cart[id] = { id, name, price, qty: 0 };
+    cart[id].qty++;
+    renderControls(id);
+    updateCartBar(true);
+}
+
+function decrementItem(id) {
+    if (cart[id]) {
+        cart[id].qty--;
+        if (cart[id].qty <= 0) delete cart[id];
+    }
+    renderControls(id);
+    updateCartBar();
+    renderCartItems();
+}
+
+function renderControls(id) {
+    const el = document.getElementById('ctrl-' + id);
+    if (!el) return;
+    const item = cart[id];
+    if (item && item.qty > 0) {
+        el.innerHTML = `
+            <button onclick="decrementItem(${id})" class="w-8 h-8 rounded-full border-2 border-emerald-600 text-emerald-600 flex items-center justify-center active:scale-95 transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+            </button>
+            <span class="text-sm font-extrabold text-gray-900 w-5 text-center">${item.qty}</span>
+            <button onclick="addToCart(${id}, '${item.name.replace(/'/g, "\\'")}', ${item.price})" class="w-8 h-8 rounded-full bg-emerald-600 text-white flex items-center justify-center active:scale-95 transition-all">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            </button>`;
+    } else {
+        const name = document.querySelector(`#ctrl-${id}`);
+        el.innerHTML = `
+            <button onclick="addToCart(${id}, '', 0)" data-restore="${id}" class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 active:scale-95 transition-all shadow-md restore-btn">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+            </button>`;
+        // restore original add with correct data
+        location.reload = location.reload; // no-op
+    }
+}
+
+// keep original item data for re-add after removal
+const ITEM_DATA = {
+    @foreach($categories as $category)
+    @foreach($category->menuItems as $item)
+    {{ $item->id }}: { name: '{{ addslashes($item->name) }}', price: {{ $item->price }} },
+    @endforeach
+    @endforeach
+};
+
+document.addEventListener('click', function(e) {
+    const btn = e.target.closest('.restore-btn');
+    if (btn) {
+        const id = parseInt(btn.dataset.restore);
+        const d = ITEM_DATA[id];
+        if (d && (!cart[id] || cart[id].qty === 0)) {
+            delete cart[id];
+            addToCart(id, d.name, d.price);
+        }
+    }
+});
+
+function cartCount() { return Object.values(cart).reduce((s, i) => s + i.qty, 0); }
+function cartSubtotal() { return Object.values(cart).reduce((s, i) => s + i.qty * i.price, 0); }
+
+function updateCartBar(bounce = false) {
+    const count = cartCount();
+    const bar = document.getElementById('cartBar');
+    const badge = document.getElementById('cartBadge');
+    if (count > 0) {
+        bar.classList.remove('hidden');
+        badge.textContent = count;
+        if (bounce) { badge.classList.remove('badge-bounce'); void badge.offsetWidth; badge.classList.add('badge-bounce'); }
+        const sub = cartSubtotal();
+        const total = sub + sub * TAX_RATE / 100 + sub * SERVICE_RATE / 100;
+        document.getElementById('cartTotal').textContent = CURRENCY + ' ' + nf(total);
+    } else {
+        bar.classList.add('hidden');
+        closeCart();
+    }
+}
+
+function openCart() {
+    renderCartItems();
+    document.getElementById('cartDrawer').classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+}
+
+function closeCart() {
+    document.getElementById('cartDrawer').classList.add('hidden');
+    document.body.style.overflow = '';
+}
+
+function renderCartItems() {
+    const wrap = document.getElementById('cartItems');
+    const items = Object.values(cart);
+    if (items.length === 0) {
+        wrap.innerHTML = '<p class="text-center text-gray-400 text-sm py-8">Your cart is empty</p>';
+    } else {
+        wrap.innerHTML = items.map(i => `
+            <div class="flex items-center gap-3">
+                <div class="flex-1 min-w-0">
+                    <p class="text-sm font-bold text-gray-900">${i.name}</p>
+                    <p class="text-xs text-gray-400">${CURRENCY} ${nf(i.price)} each</p>
+                </div>
+                <div class="flex items-center gap-2 shrink-0">
+                    <button onclick="decrementItem(${i.id})" class="w-7 h-7 rounded-full border-2 border-emerald-600 text-emerald-600 flex items-center justify-center">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M20 12H4"/></svg>
+                    </button>
+                    <span class="text-sm font-extrabold w-5 text-center">${i.qty}</span>
+                    <button onclick="addToCart(${i.id}, '${i.name.replace(/'/g, "\\'")}', ${i.price}); renderCartItems(); updateSummary();" class="w-7 h-7 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
+                    </button>
+                </div>
+                <span class="text-sm font-extrabold text-gray-900 w-20 text-right shrink-0">${CURRENCY} ${nf(i.price * i.qty)}</span>
+            </div>
+        `).join('');
+    }
+    updateSummary();
+}
+
+function updateSummary() {
+    const sub = cartSubtotal();
+    const tax = sub * TAX_RATE / 100;
+    const service = sub * SERVICE_RATE / 100;
+    document.getElementById('sumSubtotal').textContent = CURRENCY + ' ' + nf(sub);
+    document.getElementById('sumTax').textContent = CURRENCY + ' ' + nf(tax);
+    const svcEl = document.getElementById('sumService');
+    if (svcEl) svcEl.textContent = CURRENCY + ' ' + nf(service);
+    document.getElementById('sumTotal').textContent = CURRENCY + ' ' + nf(sub + tax + service);
+}
+
+function filterCategory(cat, btn) {
+    document.querySelectorAll('.cat-pill').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.menu-section').forEach(s => {
+        s.style.display = (cat === 'all' || s.dataset.cat === cat) ? '' : 'none';
+    });
+}
+
+async function placeOrder() {
+    const items = Object.values(cart).map(i => ({ menu_item_id: i.id, quantity: i.qty }));
+    if (items.length === 0) return;
+
+    const btn = document.getElementById('placeBtn');
+    btn.disabled = true;
+    btn.textContent = 'Placing order...';
+
+    try {
+        const response = await fetch('{{ route('customer.order.place') }}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                'Accept': 'application/json',
+            },
+            body: JSON.stringify({
+                restaurant_id: RESTAURANT_ID,
+                table_id: TABLE_ID,
+                customer_name: document.getElementById('custName').value.trim(),
+                customer_phone: document.getElementById('custPhone').value.trim(),
+                items: items,
+            }),
+        });
+        const result = await response.json();
+        if (result.success) {
+            await Swal.fire({
+                icon: 'success',
+                title: 'Order Placed!',
+                text: 'Your order ' + result.order_number + ' has been sent to the kitchen.',
+                confirmButtonColor: '#024938',
+                confirmButtonText: 'Track Order',
+            });
+            window.location.href = result.redirect;
+        } else {
+            throw new Error(result.message || 'Failed');
+        }
+    } catch (err) {
+        btn.disabled = false;
+        btn.textContent = 'Place Order';
+        Swal.fire({ icon: 'error', title: 'Oops...', text: err.message || 'Something went wrong. Please try again.', confirmButtonColor: '#024938' });
+    }
+}
+</script>
+
+</body>
+</html>
