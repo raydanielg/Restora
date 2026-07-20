@@ -37,4 +37,17 @@ class LoginController extends Controller
         $this->middleware('guest')->except('logout');
         $this->middleware('auth')->only('logout');
     }
+
+    /**
+     * Redirect users based on their role after login.
+     */
+    protected function redirectTo()
+    {
+        return match (auth()->user()->role) {
+            'chef' => route('kitchen.index'),
+            'waiter' => route('waiter.index'),
+            'reception' => route('reception.index'),
+            default => route('home'),
+        };
+    }
 }
