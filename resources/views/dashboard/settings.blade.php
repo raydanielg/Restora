@@ -5,6 +5,27 @@
 
 @section('content')
 
+{{-- Restaurant Public Link --}}
+<div class="bg-gradient-to-br from-emerald-700 to-emerald-900 rounded-xl border border-emerald-600 p-5 mb-6 text-white">
+    <div class="flex flex-col sm:flex-row sm:items-center gap-4">
+        <div class="flex-1">
+            <h3 class="text-sm font-bold flex items-center gap-2">
+                <svg class="w-4 h-4 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1"/></svg>
+                Your Restaurant Link
+            </h3>
+            <p class="text-xs text-emerald-200 mt-1">Share this link so customers can view your menu & order online</p>
+            <div class="mt-3 flex items-center gap-2 bg-white/10 border border-white/20 rounded-lg px-3 py-2">
+                <span id="restLink" class="text-xs font-mono text-gold-200 truncate flex-1">{{ url('/r/' . $restaurant->slug) }}</span>
+                <button onclick="copyLink()" class="shrink-0 px-2.5 py-1 text-[10px] font-bold bg-gold-500 text-emerald-900 rounded-md hover:bg-gold-400 transition-colors">COPY</button>
+            </div>
+        </div>
+        <div class="shrink-0 text-center">
+            <div id="restQR" class="bg-white p-2 rounded-lg inline-block"></div>
+            <button onclick="printRestaurantQR()" class="block w-full mt-2 text-[10px] font-bold text-gold-300 hover:text-gold-200 underline">Print QR</button>
+        </div>
+    </div>
+</div>
+
 <form action="{{ route('settings.update') }}" method="POST">
     @csrf
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
