@@ -8,6 +8,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\StaffController;
 use App\Http\Controllers\ReportController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\OnboardingController;
 
 // Landing page
 Route::get('/', function () {
@@ -29,9 +30,15 @@ Route::get('/about', function () {
 
 Auth::routes();
 
-// Dashboard routes (auth required)
+// Onboarding (after registration, before dashboard)
 Route::middleware('auth')->group(function () {
-    Route::get('/home', [HomeController::class, 'index'])->name('home');
+    Route::get('/onboarding', [OnboardingController::class, 'index'])->name('onboarding.index');
+    Route::post('/onboarding', [OnboardingController::class, 'store'])->name('onboarding.store');
+});
+
+// Dashboard routes (auth + restaurant setup required)
+Route::middleware(['auth'])->group(function () {
+    Route::get('/home', [HomeController::class, 'index'])->name('home')->middleware('restaurant.setup');
 
     // Menu Management
     Route::get('/menu', [MenuController::class, 'index'])->name('menu.index');
