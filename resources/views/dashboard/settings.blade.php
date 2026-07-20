@@ -125,4 +125,55 @@
         <button type="submit" class="px-6 py-2.5 text-sm font-bold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">Save Changes</button>
     </div>
 </form>
+@push('scripts')
+<script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+<script>
+const REST_LINK = '{{ url('/r/' . $restaurant->slug) }}';
+
+new QRCode(document.getElementById('restQR'), {
+    text: REST_LINK,
+    width: 110,
+    height: 110,
+    colorDark: '#024938',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+});
+
+function copyLink() {
+    navigator.clipboard.writeText(REST_LINK).then(() => {
+        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Link copied!', showConfirmButton: false, timer: 2000 });
+    });
+}
+
+function printRestaurantQR() {
+    const qrImg = document.querySelector('#restQR img') || document.querySelector('#restQR canvas');
+    const imgSrc = qrImg.tagName === 'IMG' ? qrImg.src : qrImg.toDataURL();
+    const win = window.open('', '_blank');
+    win.document.write(`
+        <html>
+        <head><title>{{ addslashes($restaurant->name) }} - QR Code</title>
+        <style>
+            body { font-family: sans-serif; display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+            .card { text-align: center; padding: 40px; border: 3px solid #024938; border-radius: 20px; }
+            h1 { color: #024938; margin: 0 0 4px; font-size: 26px; }
+            p { color: #888; margin: 0 0 20px; font-size: 13px; }
+            img { width: 280px; height: 280px; }
+            .footer { margin-top: 20px; font-size: 12px; color: #024938; font-weight: bold; }
+        </style>
+        </head>
+        <body>
+            <div class="card">
+                <h1>{{ addslashes($restaurant->name) }}</h1>
+                <p>Scan to view our menu & order online</p>
+                <img src="${imgSrc}">
+                <div class="footer">Powered by Restora OS</div>
+            </div>
+            <script>window.onload = () => window.print();<\/script>
+        </body>
+        </html>
+    `);
+    win.document.close();
+}
+</script>
+@endpush
 @endsection
