@@ -22,7 +22,7 @@ class HomeController extends Controller
         $restaurant = auth()->user()->restaurant;
 
         if (!$restaurant) {
-            return view('home');
+            return redirect()->route('onboarding.index');
         }
 
         $today = now()->startOfDay();
