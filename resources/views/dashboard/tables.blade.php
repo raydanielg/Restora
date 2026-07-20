@@ -36,7 +36,13 @@
             <p class="text-[10px] text-gray-500">Active: <span class="font-mono font-medium text-gray-700">{{ $table->activeOrder->order_number }}</span></p>
         </div>
         @endif
-        <div class="mt-3 flex items-center gap-2">
+        <div class="mt-3">
+            <button onclick="showQR('{{ $table->qr_code }}', '{{ addslashes($table->table_number) }}')" class="w-full py-1.5 text-[11px] font-bold text-emerald-700 border border-emerald-200 bg-emerald-50 rounded-lg hover:bg-emerald-100 transition-colors inline-flex items-center justify-center gap-1.5">
+                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+                View QR Code
+            </button>
+        </div>
+        <div class="mt-2 flex items-center gap-2">
             <form action="{{ route('tables.status', $table) }}" method="POST">
                 @csrf @method('PATCH')
                 <select name="status" onchange="this.form.submit()" class="text-[10px] border border-gray-200 rounded-md px-1.5 py-1 outline-none focus:border-emerald-500">
@@ -63,6 +69,23 @@
     <p class="text-gray-400 text-sm mt-1">Add your first table to get started</p>
 </div>
 @endif
+
+{{-- Modal: QR Code --}}
+<div id="modal-qr" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
+    <div class="bg-white rounded-xl shadow-xl max-w-sm w-full p-6 text-center">
+        <h3 class="text-lg font-bold text-gray-900" id="qr-title">Table QR</h3>
+        <p class="text-xs text-gray-400 mb-4">Customers scan this to view menu & order</p>
+        <div id="qr-container" class="flex justify-center p-4 bg-white rounded-lg border-2 border-dashed border-gray-200 mx-auto" style="width: fit-content;"></div>
+        <p class="text-[10px] text-gray-400 mt-3 break-all" id="qr-link"></p>
+        <div class="flex gap-3 mt-5">
+            <button onclick="document.getElementById('modal-qr').classList.add('hidden')" class="flex-1 px-4 py-2 text-sm font-medium border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-50">Close</button>
+            <button onclick="printQR()" class="flex-1 px-4 py-2 text-sm font-medium bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 inline-flex items-center justify-center gap-1.5">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+                Print
+            </button>
+        </div>
+    </div>
+</div>
 
 {{-- Modal: Add Table --}}
 <div id="modal-table" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
