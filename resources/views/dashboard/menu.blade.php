@@ -32,9 +32,9 @@
                     <p class="text-xs text-gray-400">{{ $category->menuItems->count() }} items</p>
                 </div>
             </div>
-            <form action="{{ route('menu.categories.destroy', $category) }}" method="POST" onsubmit="return confirm('Delete this category and all its items?')">
+            <form id="del-cat-{{ $category->id }}" action="{{ route('menu.categories.destroy', $category) }}" method="POST">
                 @csrf @method('DELETE')
-                <button class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+                <button type="button" onclick="confirmAction('del-cat-{{ $category->id }}', 'Delete category?', 'This will delete the category and all its menu items.')" class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
             </form>
         </div>
         <div class="divide-y divide-gray-100">
@@ -62,9 +62,9 @@
                             {{ $item->is_available ? 'Available' : 'Unavailable' }}
                         </button>
                     </form>
-                    <form action="{{ route('menu.items.destroy', $item) }}" method="POST" onsubmit="return confirm('Delete this item?')">
+                    <form id="del-item-{{ $item->id }}" action="{{ route('menu.items.destroy', $item) }}" method="POST">
                         @csrf @method('DELETE')
-                        <button class="text-red-400 hover:text-red-600">
+                        <button type="button" onclick="confirmAction('del-item-{{ $item->id }}', 'Delete item?', 'This will remove {{ $item->name }} from your menu.')" class="text-red-400 hover:text-red-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
                         </button>
                     </form>
