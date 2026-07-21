@@ -52,16 +52,16 @@
         </div>
         <div class="p-3 border-t bg-gray-50/50">
             @if($order->status === 'accepted')
-            <form action="{{ route('kitchen.status', $order) }}" method="POST">
+            <form data-ajax action="{{ route('kitchen.status', $order) }}" method="POST">
                 @csrf @method('PATCH')
                 <input type="hidden" name="status" value="preparing">
-                <button class="w-full py-2.5 text-sm font-extrabold bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors">Start Preparing</button>
+                <button type="submit" class="w-full py-2.5 text-sm font-extrabold bg-sky-600 text-white rounded-lg hover:bg-sky-700 transition-colors">Start Preparing</button>
             </form>
             @else
-            <form action="{{ route('kitchen.status', $order) }}" method="POST">
+            <form data-ajax action="{{ route('kitchen.status', $order) }}" method="POST">
                 @csrf @method('PATCH')
                 <input type="hidden" name="status" value="ready">
-                <button class="w-full py-2.5 text-sm font-extrabold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">Mark as Ready</button>
+                <button type="submit" class="w-full py-2.5 text-sm font-extrabold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">Mark as Ready</button>
             </form>
             @endif
         </div>
@@ -98,8 +98,8 @@
 
 @push('scripts')
 <script>
-// Auto-refresh kitchen every 15 seconds
-setTimeout(() => location.reload(), 15000);
+// Silently refresh the kitchen queue every 15 seconds (no page reload / no flicker)
+startLiveRefresh(15000);
 </script>
 @endpush
 @endsection

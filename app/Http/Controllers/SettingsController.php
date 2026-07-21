@@ -34,10 +34,37 @@ class SettingsController extends Controller
             'tax_rate' => 'nullable|numeric|min:0|max:100',
             'service_charge' => 'nullable|numeric|min:0|max:100',
             'tin_number' => 'nullable|string|max:255',
+            'logo' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+            'cover_image' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
         ]);
+
+        if ($request->hasFile('logo')) {
+            $validated['logo'] = $this->storeRestaurantImage($request->file('logo'), $restaurant, 'logo');
+        }
+
+        if ($request->hasFile('cover_image')) {
+            $validated['cover_image'] = $this->storeRestaurantImage($request->file('cover_image'), $restaurant, 'cover');
+        }
 
         $restaurant->update($validated);
 
         return redirect()->route('settings.index')->with('success', 'Restaurant settings updated successfully.');
+    }
+
+    /**
+     * Move an uploaded restaurant image into public/uploads/restaurants and
+     * return the path (relative to public/) to store on the model.
+     */
+    private function storeRestaurantImage($file, Restaurant $restaurant, string $prefix): string
+    {
+        $directory = public_path('uploads/restaurants');
+        if (!is_dir($directory)) {
+            mkdir($directory, 0755, true);
+        }
+
+        $filename = $prefix . '-' . $restaurant->id . '-' . time() . '.' . $file->getClientOriginalExtension();
+        $file->move($directory, $filename);
+
+        return 'uploads/restaurants/' . $filename;
     }
 }

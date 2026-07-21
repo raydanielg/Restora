@@ -56,9 +56,9 @@
                     </td>
                     <td class="px-5 py-3 text-xs text-gray-400">{{ $order->created_at->format('M d, H:i') }}</td>
                     <td class="px-5 py-3">
-                        <form action="{{ route('orders.status', $order) }}" method="POST">
+                        <form data-ajax data-reset-on-success="false" action="{{ route('orders.status', $order) }}" method="POST">
                             @csrf @method('PATCH')
-                            <select name="status" onchange="this.form.submit()" class="text-[10px] border border-gray-200 rounded-md px-1.5 py-1 outline-none focus:border-emerald-500">
+                            <select name="status" onchange="this.form.requestSubmit()" class="text-[10px] border border-gray-200 rounded-md px-1.5 py-1 outline-none focus:border-emerald-500">
                                 <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
                                 <option value="accepted" {{ $order->status === 'accepted' ? 'selected' : '' }}>Accepted</option>
                                 <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>Preparing</option>

@@ -30,11 +30,15 @@ class ReceptionController extends Controller
             ->oldest()
             ->get();
 
+        // "Unpaid" means the confirmed payments so far don't cover the total yet -
+        // this correctly keeps partially-paid (split) bills visible until fully settled.
         $unpaidOrders = Order::where('restaurant_id', $restaurant->id)
             ->where('status', 'served')
-            ->whereDoesntHave('payments', fn($q) => $q->where('status', 'confirmed'))
             ->with('table', 'items')
-            ->get();
+            ->withSum(['payments as paid_amount' => fn($q) => $q->where('status', 'confirmed')], 'amount')
+            ->get()
+            ->filter(fn($order) => (float) $order->total > (float) ($order->paid_amount ?? 0))
+            ->values();
 
         $stats = [
             'newOrders' => $newOrders->count(),
@@ -110,8 +114,18 @@ class ReceptionController extends Controller
 
         $validated = $request->validate([
             'payment_method' => 'required|in:cash,mobile_money,card,bank',
-            'amount' => 'required|numeric|min:0',
+            'amount' => 'required|numeric|min:0.01',
         ]);
+
+        $alreadyPaid = (float) $order->payments()->where('status', 'confirmed')->sum('amount');
+        $remaining = round((float) $order->total - $alreadyPaid, 2);
+
+        // Split-payment rule: never allow a contribution that overpays the bill.
+        if ($validated['amount'] > $remaining + 0.01) {
+            return back()->withErrors([
+                'amount' => 'That amount exceeds the remaining balance of ' . number_format($remaining) . '.',
+            ]);
+        }
 
         Payment::create([
             'order_id' => $order->id,
@@ -122,9 +136,9 @@ class ReceptionController extends Controller
             'received_by' => auth()->id(),
         ]);
 
-        $totalPaid = $order->payments()->where('status', 'confirmed')->sum('amount');
+        $totalPaid = $alreadyPaid + $validated['amount'];
 
-        if ($totalPaid >= $order->total) {
+        if ($totalPaid >= $order->total - 0.01) {
             $order->update(['status' => 'completed', 'completed_at' => now()]);
             if ($order->table_id) {
                 RestaurantTable::where('id', $order->table_id)->update(['status' => 'available']);

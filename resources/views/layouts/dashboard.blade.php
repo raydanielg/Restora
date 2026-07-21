@@ -41,7 +41,9 @@
         .circle-progress { animation: circleProgress 1.2s ease-out forwards; }
     </style>
 </head>
-<body class="font-['Nunito',sans-serif] antialiased bg-gray-50 text-slate-800">
+<body class="font-['Nunito',sans-serif] antialiased bg-gray-50 text-slate-800"
+    data-flash-success="{{ session('success') }}"
+    data-flash-error="{{ session('error') ?: $errors->first() }}">
 
     {{-- Mobile Overlay --}}
     <div id="mobileOverlay" class="fixed inset-0 bg-black/50 z-40 hidden lg:hidden" onclick="toggleSidebar()"></div>
@@ -136,11 +138,13 @@
                 <span>Reports</span>
             </a>
 
-            {{-- Settings --}}
+            {{-- Settings (owner only) --}}
+            @if($userRole === 'owner')
             <a href="{{ route('settings.index') }}" class="sidebar-link w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-emerald-100 text-sm font-medium {{ request()->routeIs('settings.*') ? 'active' : '' }}">
                 <svg class="w-5 h-5 text-gold-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
                 <span>Settings</span>
             </a>
+            @endif
             @endif
         </div>
 
@@ -180,10 +184,29 @@
                     <input type="text" placeholder="Search..." class="bg-transparent text-sm outline-none w-40 lg:w-48 text-gray-600 placeholder-gray-400">
                 </div>
                 {{-- Notifications --}}
-                <button class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
-                    <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full"></span>
-                </button>
+                <div id="notifBell" class="relative">
+                    <button onclick="document.getElementById('notifDropdown').classList.toggle('hidden')" class="relative p-2 rounded-lg hover:bg-gray-100 text-gray-500 transition-colors">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+                        @if(count($liveNotifications ?? []) > 0)
+                        <span class="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse"></span>
+                        @endif
+                    </button>
+                    <div id="notifDropdown" class="hidden absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-xl border border-gray-100 shadow-xl z-50 overflow-hidden">
+                        <div class="px-4 py-3 border-b bg-gray-50/50">
+                            <p class="text-sm font-bold text-gray-800">Notifications</p>
+                        </div>
+                        <div class="max-h-80 overflow-y-auto divide-y divide-gray-50">
+                            @forelse($liveNotifications ?? [] as $n)
+                            <a href="{{ $n['url'] }}" class="block px-4 py-3 hover:bg-gray-50 transition-colors">
+                                <p class="text-xs font-medium text-gray-800">{{ $n['text'] }}</p>
+                                <p class="text-[10px] text-gray-400 mt-0.5">{{ $n['time'] }}</p>
+                            </a>
+                            @empty
+                            <p class="px-4 py-8 text-center text-xs text-gray-400">You're all caught up.</p>
+                            @endforelse
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 
@@ -207,34 +230,39 @@
             if (arrow) arrow.classList.toggle('rotate-180');
         }
 
-        // SweetAlert session messages
-        document.addEventListener('DOMContentLoaded', function() {
-            @if(session('success'))
-            Swal.fire({
-                icon: 'success',
-                title: 'Success!',
-                text: '{{ session('success') }}',
-                confirmButtonColor: '#024938',
-                timer: 3500,
-                timerProgressBar: true,
-                toast: true,
-                position: 'top-end',
-                showConfirmButton: false,
-            });
-            @endif
-            @if(session('error'))
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: '{{ session('error') }}',
-                confirmButtonColor: '#024938',
-            });
-            @endif
-        });
+        /* ============================================================
+         * Restora OS — shared AJAX + centered toast layer
+         * Every dashboard form/action reuses this instead of hard page
+         * reloads. It works by intercepting form submits & action clicks,
+         * sending them over fetch(), then swapping <main> with the fresh
+         * server-rendered content from the (possibly redirected) response
+         * — so every list/badge/table stays in sync with the database
+         * without a full browser navigation or white-flash reload.
+         * ============================================================ */
 
-        // Confirm dialog helper using SweetAlert
-        function confirmAction(formId, title, text) {
+        // Small, centered toast (replaces the old top-right SweetAlert toast).
+        // Messages carrying a one-time code (e.g. a new staff login code) stay on
+        // screen until dismissed instead of auto-vanishing after a couple seconds.
+        function restoraToast(icon, message) {
+            if (!message) return;
+            const mustCopy = /login code:/i.test(message);
             Swal.fire({
+                icon: icon,
+                title: mustCopy ? 'Staff Added' : message,
+                text: mustCopy ? message : undefined,
+                position: 'center',
+                toast: false,
+                showConfirmButton: mustCopy,
+                confirmButtonColor: '#024938',
+                timer: mustCopy ? undefined : 2600,
+                timerProgressBar: !mustCopy,
+                width: 'auto',
+                customClass: { popup: 'restora-toast-popup' },
+            });
+        }
+
+        function restoraConfirm(title, text) {
+            return Swal.fire({
                 title: title || 'Are you sure?',
                 text: text || "You won't be able to revert this!",
                 icon: 'warning',
@@ -242,14 +270,136 @@
                 confirmButtonColor: '#024938',
                 cancelButtonColor: '#dc2626',
                 confirmButtonText: 'Yes, proceed!',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    document.getElementById(formId).submit();
-                }
+                cancelButtonText: 'Cancel',
             });
         }
+
+        // Legacy helper name kept for compatibility with any inline callers.
+        function confirmAction(formId, title, text) {
+            restoraConfirm(title, text).then((result) => {
+                if (result.isConfirmed) document.getElementById(formId).submit();
+            });
+        }
+
+        function csrfToken() {
+            return document.querySelector('meta[name="csrf-token"]').content;
+        }
+
+        function showFlashFromDocument(doc) {
+            const body = doc.body || doc;
+            const success = body.dataset ? body.dataset.flashSuccess : null;
+            const error = body.dataset ? body.dataset.flashError : null;
+            if (success) restoraToast('success', success);
+            if (error) restoraToast('error', error);
+        }
+
+        // Also refresh the notification bell (new orders / ready meals / cash handovers)
+        // whenever we have a fresh copy of the page, since it's cheap and keeps staff informed.
+        function syncNotifBell(doc) {
+            const newBell = doc.querySelector('#notifBell');
+            const curBell = document.querySelector('#notifBell');
+            if (newBell && curBell) curBell.innerHTML = newBell.innerHTML;
+        }
+
+        // Swap <main> with the main content of a freshly fetched HTML page,
+        // without a full browser navigation (no reload flash, keeps sidebar state).
+        function swapMainFromHtml(html) {
+            const doc = new DOMParser().parseFromString(html, 'text/html');
+            const newMain = doc.querySelector('main');
+            const currentMain = document.querySelector('main');
+            if (newMain && currentMain) {
+                currentMain.innerHTML = newMain.innerHTML;
+                syncNotifBell(doc);
+                showFlashFromDocument(doc);
+            } else {
+                // Response wasn't a normal dashboard page (e.g. a 403/500 error page) -
+                // fall back to a generic toast instead of silently doing nothing.
+                restoraToast('error', 'Something went wrong. Please refresh and try again.');
+            }
+        }
+
+        async function refreshMain() {
+            try {
+                // Note: deliberately not sending X-Requested-With here - Laravel treats that
+                // header (combined with a generic Accept) as "wants JSON" for validation errors,
+                // which would break our HTML-based main-swap. Plain GET keeps normal HTML back.
+                const res = await fetch(window.location.href);
+                const html = await res.text();
+                const doc = new DOMParser().parseFromString(html, 'text/html');
+                const newMain = doc.querySelector('main');
+                const currentMain = document.querySelector('main');
+                if (newMain && currentMain) currentMain.innerHTML = newMain.innerHTML;
+                syncNotifBell(doc);
+            } catch (e) { /* silent - keep last known state on network hiccup */ }
+        }
+
+        // Close the notification dropdown when clicking outside of it.
+        document.addEventListener('click', function(e) {
+            const bell = document.getElementById('notifBell');
+            const dropdown = document.getElementById('notifDropdown');
+            if (bell && dropdown && !bell.contains(e.target)) dropdown.classList.add('hidden');
+        });
+
+        // Auto-refresh helper for live boards (kitchen/waiter/reception). Skips the
+        // refresh while the user is actively typing/selecting inside the page.
+        function startLiveRefresh(intervalMs) {
+            setInterval(() => {
+                const active = document.activeElement;
+                const main = document.querySelector('main');
+                const isTypingInMain = active && main && main.contains(active) && ['INPUT', 'SELECT', 'TEXTAREA'].includes(active.tagName);
+                const modalOpen = document.querySelector('main [id^="modal-"]:not(.hidden)');
+                if (!isTypingInMain && !modalOpen) refreshMain();
+            }, intervalMs);
+        }
+
+        // Show flash messages from the page that was just loaded normally (first load / full navigation).
+        document.addEventListener('DOMContentLoaded', function() {
+            showFlashFromDocument(document);
+        });
+
+        // Intercept every form marked data-ajax and submit it over fetch().
+        document.addEventListener('submit', async function(e) {
+            const form = e.target.closest('form[data-ajax]');
+            if (!form) return;
+            e.preventDefault();
+
+            if (form.dataset.confirm) {
+                const result = await restoraConfirm(form.dataset.confirm, form.dataset.confirmText || '');
+                if (!result.isConfirmed) return;
+            }
+
+            const submitBtn = form.querySelector('[type="submit"]');
+            const originalBtnHtml = submitBtn ? submitBtn.innerHTML : null;
+            if (submitBtn) { submitBtn.disabled = true; submitBtn.dataset.loading = '1'; }
+
+            try {
+                // Deliberately not sending X-Requested-With: Laravel would treat that as
+                // "wants JSON" on validation failure and return a 422 JSON body instead of
+                // the redirected HTML page our swap logic parses.
+                const res = await fetch(form.action, {
+                    method: 'POST', // Laravel spoofs PATCH/DELETE from the form's _method field
+                    headers: { 'X-CSRF-TOKEN': csrfToken() },
+                    body: new FormData(form),
+                });
+                const html = await res.text();
+
+                if (res.ok) {
+                    swapMainFromHtml(html);
+                    if (form.dataset.resetOnSuccess !== 'false') form.reset();
+                } else {
+                    // Validation errors (422) etc. - the redirected-back page carries the error flash.
+                    swapMainFromHtml(html);
+                }
+            } catch (err) {
+                restoraToast('error', 'Network error — please try again.');
+            } finally {
+                if (submitBtn) { submitBtn.disabled = false; submitBtn.dataset.loading = ''; if (originalBtnHtml) submitBtn.innerHTML = originalBtnHtml; }
+            }
+        });
     </script>
+    <style>
+        .restora-toast-popup { border-radius: 14px !important; }
+    </style>
     @stack('scripts')
 </body>
 </html>

@@ -32,9 +32,9 @@
                     <p class="text-xs text-gray-400">{{ $category->menuItems->count() }} items</p>
                 </div>
             </div>
-            <form id="del-cat-{{ $category->id }}" action="{{ route('menu.categories.destroy', $category) }}" method="POST">
+            <form data-ajax data-confirm="Delete category?" data-confirm-text="This will delete the category and all its menu items." action="{{ route('menu.categories.destroy', $category) }}" method="POST">
                 @csrf @method('DELETE')
-                <button type="button" onclick="confirmAction('del-cat-{{ $category->id }}', 'Delete category?', 'This will delete the category and all its menu items.')" class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
+                <button type="submit" class="text-red-500 hover:text-red-700 text-xs font-medium">Delete</button>
             </form>
         </div>
         <div class="divide-y divide-gray-100">
@@ -56,15 +56,15 @@
                     <p class="text-[10px] text-gray-400">{{ $item->preparation_time }} min</p>
                 </div>
                 <div class="flex items-center gap-2 shrink-0">
-                    <form action="{{ route('menu.items.toggle', $item) }}" method="POST">
+                    <form data-ajax action="{{ route('menu.items.toggle', $item) }}" method="POST">
                         @csrf @method('PATCH')
-                        <button class="text-xs font-medium px-2.5 py-1 rounded-full {{ $item->is_available ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200' }}">
+                        <button type="submit" class="text-xs font-medium px-2.5 py-1 rounded-full {{ $item->is_available ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200' }}">
                             {{ $item->is_available ? 'Available' : 'Unavailable' }}
                         </button>
                     </form>
-                    <form id="del-item-{{ $item->id }}" action="{{ route('menu.items.destroy', $item) }}" method="POST">
+                    <form data-ajax data-confirm="Delete item?" data-confirm-text="This will remove {{ addslashes($item->name) }} from your menu." action="{{ route('menu.items.destroy', $item) }}" method="POST">
                         @csrf @method('DELETE')
-                        <button type="button" onclick="confirmAction('del-item-{{ $item->id }}', 'Delete item?', 'This will remove {{ $item->name }} from your menu.')" class="text-red-400 hover:text-red-600">
+                        <button type="submit" class="text-red-400 hover:text-red-600">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
                         </button>
                     </form>
@@ -89,7 +89,7 @@
 <div id="modal-category" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
         <h3 class="text-lg font-bold text-gray-900 mb-4">Add Category</h3>
-        <form action="{{ route('menu.categories.store') }}" method="POST">
+        <form data-ajax action="{{ route('menu.categories.store') }}" method="POST">
             @csrf
             <div class="space-y-4">
                 <div>
@@ -113,7 +113,7 @@
 <div id="modal-item" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6 max-h-[90vh] overflow-y-auto">
         <h3 class="text-lg font-bold text-gray-900 mb-4">Add Menu Item</h3>
-        <form action="{{ route('menu.items.store') }}" method="POST">
+        <form data-ajax action="{{ route('menu.items.store') }}" method="POST">
             @csrf
             <div class="space-y-4">
                 <div>

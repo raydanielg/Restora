@@ -46,9 +46,9 @@
             @endforeach
         </div>
         <div class="p-3 border-t">
-            <form action="{{ route('waiter.serve', $order) }}" method="POST">
+            <form data-ajax action="{{ route('waiter.serve', $order) }}" method="POST">
                 @csrf @method('PATCH')
-                <button class="w-full py-2.5 text-sm font-extrabold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">Mark as Served</button>
+                <button type="submit" class="w-full py-2.5 text-sm font-extrabold bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors">Mark as Served</button>
             </form>
         </div>
     </div>
@@ -83,9 +83,9 @@
                 <div class="text-right shrink-0">
                     <span class="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium border {{ $statusColors[$order->status] ?? '' }}">{{ ucfirst($order->status) }}</span>
                     @if($order->status === 'served' && !$order->payments->where('status', 'confirmed')->count())
-                    <form action="{{ route('waiter.collect', $order) }}" method="POST" class="mt-1">
+                    <form data-ajax action="{{ route('waiter.collect', $order) }}" method="POST" class="mt-1">
                         @csrf
-                        <button class="text-[10px] font-bold text-gold-600 hover:text-gold-700 underline">Collect Cash</button>
+                        <button type="submit" class="text-[10px] font-bold text-gold-600 hover:text-gold-700 underline">Collect Cash</button>
                     </form>
                     @endif
                 </div>
@@ -117,8 +117,8 @@
 
 @push('scripts')
 <script>
-// Auto-refresh every 20 seconds
-setTimeout(() => location.reload(), 20000);
+// Silently refresh every 20 seconds (no page reload / no flicker)
+startLiveRefresh(20000);
 </script>
 @endpush
 @endsection

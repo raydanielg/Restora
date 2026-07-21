@@ -33,7 +33,18 @@ class StaffController extends Controller
             'role' => 'required|in:manager,reception,waiter,chef',
         ]);
 
-        $code = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        // Generate a unique 6-digit staff login code (retry on the rare collision).
+        do {
+            $code = str_pad((string) random_int(100000, 999999), 6, '0', STR_PAD_LEFT);
+        } while (User::where('staff_code', $code)->exists());
+
+        // Build a guaranteed-unique internal login email from the staff name.
+        $baseSlug = \Illuminate\Support\Str::slug($validated['name'], '.') ?: 'staff';
+        $email = $baseSlug . '.' . $restaurant->id . '@staff.restora.app';
+        $suffix = 1;
+        while (User::where('email', $email)->exists()) {
+            $email = $baseSlug . '.' . $restaurant->id . '.' . $suffix++ . '@staff.restora.app';
+        }
 
         User::create([
             'name' => $validated['name'],
@@ -41,7 +52,7 @@ class StaffController extends Controller
             'role' => $validated['role'],
             'restaurant_id' => $restaurant->id,
             'staff_code' => $code,
-            'email' => strtolower(str_replace(' ', '.', $validated['name'])) . $restaurant->id . '@staff.restora.app',
+            'email' => $email,
             'password' => bcrypt($code),
         ]);
 

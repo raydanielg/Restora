@@ -143,6 +143,6 @@ class OrderController extends Controller
             RestaurantTable::where('id', $order->table_id)->update(['status' => 'available']);
         }
 
-        return redirect()->route('orders.index')->with('success', 'Order status updated.');
+        return back()->with('success', 'Order status updated.');
     }
 }

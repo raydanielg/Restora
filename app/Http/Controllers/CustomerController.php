@@ -22,7 +22,7 @@ class CustomerController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('customer.menu', compact('restaurant', 'categories'))->with('table', null);
+        return view('customer.menu', compact('restaurant', 'categories'))->with(['table' => null, 'activeOrder' => null]);
     }
 
     // Table QR ordering: /table/{qr_code}
@@ -41,7 +41,16 @@ class CustomerController extends Controller
             ->orderBy('sort_order')
             ->get();
 
-        return view('customer.menu', compact('restaurant', 'categories', 'table'));
+        // The customer's own current bill at this table (used by the "Pay Bills" quick action),
+        // scoped to orders this browser session actually placed.
+        $trackedOrderIds = session()->get('customer_orders', []);
+        $activeOrder = Order::where('table_id', $table->id)
+            ->whereIn('id', $trackedOrderIds)
+            ->whereNotIn('status', ['completed', 'cancelled'])
+            ->latest()
+            ->first();
+
+        return view('customer.menu', compact('restaurant', 'categories', 'table', 'activeOrder'));
     }
 
     // Place order from customer (AJAX)
@@ -49,7 +58,8 @@ class CustomerController extends Controller
     {
         $validated = $request->validate([
             'restaurant_id' => 'required|exists:restaurants,id',
-            'table_id' => 'nullable|exists:restaurant_tables,id',
+            // A table must be scanned before ordering, so food is always served to the right table.
+            'table_id' => 'required|exists:restaurant_tables,id',
             'customer_name' => 'nullable|string|max:255',
             'customer_phone' => 'nullable|string|max:255',
             'items' => 'required|array|min:1',

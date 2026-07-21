@@ -43,17 +43,17 @@
             </button>
         </div>
         <div class="mt-2 flex items-center gap-2">
-            <form action="{{ route('tables.status', $table) }}" method="POST">
+            <form data-ajax data-reset-on-success="false" action="{{ route('tables.status', $table) }}" method="POST">
                 @csrf @method('PATCH')
-                <select name="status" onchange="this.form.submit()" class="text-[10px] border border-gray-200 rounded-md px-1.5 py-1 outline-none focus:border-emerald-500">
+                <select name="status" onchange="this.form.requestSubmit()" class="text-[10px] border border-gray-200 rounded-md px-1.5 py-1 outline-none focus:border-emerald-500">
                     <option value="available" {{ $table->status === 'available' ? 'selected' : '' }}>Available</option>
                     <option value="occupied" {{ $table->status === 'occupied' ? 'selected' : '' }}>Occupied</option>
                     <option value="reserved" {{ $table->status === 'reserved' ? 'selected' : '' }}>Reserved</option>
                 </select>
             </form>
-            <form id="del-table-{{ $table->id }}" action="{{ route('tables.destroy', $table) }}" method="POST">
+            <form data-ajax data-confirm="Delete table?" data-confirm-text="This will remove the table from your restaurant." action="{{ route('tables.destroy', $table) }}" method="POST">
                 @csrf @method('DELETE')
-                <button type="button" onclick="confirmAction('del-table-{{ $table->id }}', 'Delete table?', 'This will remove the table from your restaurant.')" class="text-red-400 hover:text-red-600 ml-auto">
+                <button type="submit" class="text-red-400 hover:text-red-600 ml-auto">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
                 </button>
             </form>
@@ -91,7 +91,7 @@
 <div id="modal-table" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
         <h3 class="text-lg font-bold text-gray-900 mb-4">Add Table</h3>
-        <form action="{{ route('tables.store') }}" method="POST">
+        <form data-ajax action="{{ route('tables.store') }}" method="POST">
             @csrf
             <div class="space-y-4">
                 <div>

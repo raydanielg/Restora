@@ -55,9 +55,9 @@
                     </td>
                     <td class="px-5 py-3 text-xs text-gray-400">{{ $member->created_at->format('M d, Y') }}</td>
                     <td class="px-5 py-3">
-                        <form id="del-staff-{{ $member->id }}" action="{{ route('staff.destroy', $member) }}" method="POST">
+                        <form data-ajax data-confirm="Remove staff?" data-confirm-text="This will remove {{ addslashes($member->name) }} from your staff." action="{{ route('staff.destroy', $member) }}" method="POST">
                             @csrf @method('DELETE')
-                            <button type="button" onclick="confirmAction('del-staff-{{ $member->id }}', 'Remove staff?', 'This will remove {{ $member->name }} from your staff.')" class="text-red-400 hover:text-red-600">
+                            <button type="submit" class="text-red-400 hover:text-red-600">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M1 7h22M9 7V4a1 1 0 011-1h4a1 1 0 011 1v3"/></svg>
                             </button>
                         </form>
@@ -80,7 +80,7 @@
 <div id="modal-staff" class="hidden fixed inset-0 z-50 bg-black/50 flex items-center justify-center p-4">
     <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
         <h3 class="text-lg font-bold text-gray-900 mb-4">Add Staff Member</h3>
-        <form action="{{ route('staff.store') }}" method="POST">
+        <form data-ajax action="{{ route('staff.store') }}" method="POST">
             @csrf
             <div class="space-y-4">
                 <div>

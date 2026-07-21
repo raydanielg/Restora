@@ -56,9 +56,9 @@
                 <div class="flex justify-between"><span class="text-gray-500">Customer</span><span class="font-medium text-gray-900">{{ $order->customer_name ?? 'Walk-in' }}</span></div>
                 <div class="flex justify-between"><span class="text-gray-500">Date</span><span class="font-medium text-gray-900">{{ $order->created_at->format('M d, Y H:i') }}</span></div>
                 <div class="flex justify-between items-center"><span class="text-gray-500">Status</span>
-                    <form action="{{ route('orders.status', $order) }}" method="POST">
+                    <form data-ajax data-reset-on-success="false" action="{{ route('orders.status', $order) }}" method="POST">
                         @csrf @method('PATCH')
-                        <select name="status" onchange="this.form.submit()" class="text-xs border border-gray-200 rounded-md px-2 py-1 outline-none focus:border-emerald-500">
+                        <select name="status" onchange="this.form.requestSubmit()" class="text-xs border border-gray-200 rounded-md px-2 py-1 outline-none focus:border-emerald-500">
                             <option value="pending" {{ $order->status === 'pending' ? 'selected' : '' }}>Pending</option>
                             <option value="accepted" {{ $order->status === 'accepted' ? 'selected' : '' }}>Accepted</option>
                             <option value="preparing" {{ $order->status === 'preparing' ? 'selected' : '' }}>Preparing</option>

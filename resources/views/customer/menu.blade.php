@@ -34,33 +34,80 @@
 </head>
 <body class="bg-gray-50 pb-24">
 
-{{-- Header --}}
-<div class="bg-gradient-to-br from-emerald-700 to-emerald-900 text-white">
-    <div class="max-w-lg mx-auto px-4 pt-6 pb-5">
+{{-- Hero --}}
+<div class="relative bg-gradient-to-br from-emerald-700 to-emerald-900 text-white overflow-hidden">
+    @if($restaurant->cover_image)
+    <div class="absolute inset-0">
+        <img src="{{ asset($restaurant->cover_image) }}" class="w-full h-full object-cover opacity-30" alt="">
+        <div class="absolute inset-0 bg-gradient-to-b from-emerald-900/40 via-emerald-900/70 to-emerald-900"></div>
+    </div>
+    @endif
+    <div class="relative max-w-lg mx-auto px-4 pt-6 pb-5">
         <div class="flex items-center gap-3">
-            <div class="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0">
+            <div class="w-14 h-14 rounded-2xl bg-white/10 border border-white/20 flex items-center justify-center shrink-0 shadow-lg overflow-hidden">
                 @if($restaurant->logo)
-                <img src="{{ asset($restaurant->logo) }}" class="w-full h-full object-cover rounded-xl" alt="{{ $restaurant->name }}">
+                <img src="{{ asset($restaurant->logo) }}" class="w-full h-full object-cover" alt="{{ $restaurant->name }}">
                 @else
                 <span class="text-xl font-bold text-gold-400">{{ strtoupper(substr($restaurant->name, 0, 1)) }}</span>
                 @endif
             </div>
             <div class="flex-1 min-w-0">
-                <h1 class="text-lg font-bold truncate">{{ $restaurant->name }}</h1>
+                <h1 class="text-lg font-extrabold truncate">{{ $restaurant->name }}</h1>
                 <p class="text-xs text-emerald-200 truncate">{{ $restaurant->address ?? $restaurant->location }}</p>
             </div>
         </div>
+
         @if($table)
         <div class="mt-3 inline-flex items-center gap-1.5 bg-gold-500/20 border border-gold-400/40 rounded-full px-3 py-1">
             <svg class="w-3.5 h-3.5 text-gold-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v12a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
             <span class="text-xs font-bold text-gold-200">{{ $table->table_number }}</span>
         </div>
+        @else
+        <div class="mt-3 inline-flex items-center gap-1.5 bg-white/10 border border-white/20 rounded-full px-3 py-1">
+            <svg class="w-3.5 h-3.5 text-emerald-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+            <span class="text-xs font-medium text-emerald-100">Scan the QR on your table to order</span>
+        </div>
         @endif
+
+        {{-- Quick Actions --}}
+        <div class="mt-5 grid grid-cols-4 gap-2.5">
+            <button onclick="openOffers()" class="flex flex-col items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl py-3 transition-colors">
+                <svg class="w-5 h-5 text-gold-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 10V5a2 2 0 012-2z"/></svg>
+                <span class="text-[10px] font-bold">Offers</span>
+            </button>
+            <button onclick="startServices()" class="flex flex-col items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl py-3 transition-colors">
+                <svg class="w-5 h-5 text-gold-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+                <span class="text-[10px] font-bold">Services</span>
+            </button>
+            <button onclick="openPayBills()" class="flex flex-col items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl py-3 transition-colors">
+                <svg class="w-5 h-5 text-gold-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 9V7a4 4 0 00-8 0v2M5 9h14l1 12H4L5 9z"/></svg>
+                <span class="text-[10px] font-bold">Pay Bills</span>
+            </button>
+            <button onclick="openMore()" class="flex flex-col items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/10 rounded-2xl py-3 transition-colors">
+                <svg class="w-5 h-5 text-gold-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6h.01M12 12h.01M12 18h.01"/></svg>
+                <span class="text-[10px] font-bold">More</span>
+            </button>
+        </div>
     </div>
 </div>
 
+@if(!$table)
+{{-- No table scanned yet: menu is browse-only until a table QR is scanned --}}
+<div class="max-w-lg mx-auto px-4 pt-4">
+    <div class="bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 flex items-center gap-3">
+        <div class="w-9 h-9 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+            <svg class="w-5 h-5 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z"/></svg>
+        </div>
+        <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-amber-800">You're browsing only</p>
+            <p class="text-[11px] text-amber-700">Scan the QR code on your table to place an order.</p>
+        </div>
+    </div>
+</div>
+@endif
+
 {{-- Category Pills --}}
-<div class="sticky top-0 z-30 bg-white border-b shadow-sm">
+<div id="menuArea" class="sticky top-0 z-30 bg-white border-b shadow-sm">
     <div class="max-w-lg mx-auto px-4 py-3 flex gap-2 overflow-x-auto no-scrollbar">
         <button onclick="filterCategory('all', this)" class="cat-pill active shrink-0 px-4 py-1.5 rounded-full text-xs font-bold border border-gray-200 text-gray-600 transition-colors">All</button>
         @foreach($categories as $category)
@@ -91,7 +138,7 @@
                 </div>
                 <div class="shrink-0 flex flex-col items-center gap-1">
                     <div class="flex items-center gap-2" id="ctrl-{{ $item->id }}">
-                        <button onclick="addToCart({{ $item->id }}, '{{ addslashes($item->name) }}', {{ $item->price }})" class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 active:scale-95 transition-all shadow-md">
+                        <button onclick="tryAddToCart({{ $item->id }}, '{{ addslashes($item->name) }}', {{ $item->price }})" class="w-9 h-9 rounded-full bg-emerald-600 text-white flex items-center justify-center hover:bg-emerald-700 active:scale-95 transition-all shadow-md">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"/></svg>
                         </button>
                     </div>
@@ -156,15 +203,116 @@
     </div>
 </div>
 
+{{-- Offers Modal --}}
+<div id="offersModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/50" onclick="closeSheet('offersModal')"></div>
+    <div class="slide-up absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[75vh] flex flex-col">
+        <div class="max-w-lg mx-auto w-full flex flex-col">
+            <div class="p-4 border-b flex items-center justify-between shrink-0">
+                <h3 class="text-base font-bold text-gray-900">Offers</h3>
+                <button onclick="closeSheet('offersModal')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 text-center text-gray-400">
+                <svg class="w-12 h-12 mx-auto mb-2 text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 10V5a2 2 0 012-2z"/></svg>
+                <p class="text-sm font-medium">No active offers right now</p>
+                <p class="text-xs mt-1">Check back soon — {{ $restaurant->name }} posts specials here.</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+{{-- More Modal (restaurant info) --}}
+<div id="moreModal" class="hidden fixed inset-0 z-50">
+    <div class="absolute inset-0 bg-black/50" onclick="closeSheet('moreModal')"></div>
+    <div class="slide-up absolute bottom-0 left-0 right-0 bg-white rounded-t-3xl max-h-[75vh] flex flex-col">
+        <div class="max-w-lg mx-auto w-full flex flex-col">
+            <div class="p-4 border-b flex items-center justify-between shrink-0">
+                <h3 class="text-base font-bold text-gray-900">About {{ $restaurant->name }}</h3>
+                <button onclick="closeSheet('moreModal')" class="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-gray-500">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-4 space-y-3">
+                @if($restaurant->description)
+                <p class="text-sm text-gray-600">{{ $restaurant->description }}</p>
+                @endif
+                <div class="space-y-2 text-sm">
+                    @if($restaurant->address)
+                    <div class="flex items-start gap-2.5">
+                        <svg class="w-4 h-4 text-emerald-600 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        <span class="text-gray-700">{{ $restaurant->address }}</span>
+                    </div>
+                    @endif
+                    @if($restaurant->phone)
+                    <div class="flex items-center gap-2.5">
+                        <svg class="w-4 h-4 text-emerald-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/></svg>
+                        <a href="tel:{{ $restaurant->phone }}" class="text-gray-700">{{ $restaurant->phone }}</a>
+                    </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
 const CURRENCY = '{{ $restaurant->currency }}';
 const TAX_RATE = {{ $restaurant->tax_rate }};
 const SERVICE_RATE = {{ $restaurant->service_charge }};
 const RESTAURANT_ID = {{ $restaurant->id }};
 const TABLE_ID = {{ $table?->id ?? 'null' }};
+const ACTIVE_ORDER_NUMBER = @json($activeOrder?->order_number);
 let cart = {};
 
 function nf(n) { return Math.round(n).toLocaleString(); }
+
+/* ---- Quick Actions: Offers / Services / Pay Bills / More ----
+ * Services (ordering) and Pay Bills both require the guest to have scanned
+ * their table's QR code first, per house policy - so food is only ever
+ * served to the table that actually ordered it. */
+function promptScanTable(context) {
+    Swal.fire({
+        icon: 'info',
+        title: 'Scan your table first',
+        text: context === 'pay'
+            ? 'To pay your bill, please scan the QR code on your table.'
+            : 'To order, please scan the QR code on your table so we can serve you there.',
+        confirmButtonColor: '#024938',
+        confirmButtonText: 'Got it',
+    });
+}
+
+function startServices() {
+    if (!TABLE_ID) { promptScanTable('order'); return; }
+    document.getElementById('menuArea')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function openPayBills() {
+    if (!TABLE_ID) { promptScanTable('pay'); return; }
+    if (ACTIVE_ORDER_NUMBER) {
+        window.location.href = '{{ url('/order') }}/' + ACTIVE_ORDER_NUMBER;
+    } else {
+        Swal.fire({
+            icon: 'info',
+            title: 'No open bill yet',
+            text: 'Place an order first, then come back here to pay your bill.',
+            confirmButtonColor: '#024938',
+            confirmButtonText: 'Order Now',
+        }).then(() => startServices());
+    }
+}
+
+function openOffers() { document.getElementById('offersModal').classList.remove('hidden'); }
+function openMore() { document.getElementById('moreModal').classList.remove('hidden'); }
+function closeSheet(id) { document.getElementById(id).classList.add('hidden'); }
+
+// Guard the actual "add to cart" action behind the same table-scan requirement.
+function tryAddToCart(id, name, price) {
+    if (!TABLE_ID) { promptScanTable('order'); return; }
+    addToCart(id, name, price);
+}
 
 function addToCart(id, name, price) {
     if (!cart[id]) cart[id] = { id, name, price, qty: 0 };

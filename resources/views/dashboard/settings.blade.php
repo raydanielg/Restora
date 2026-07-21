@@ -26,9 +26,50 @@
     </div>
 </div>
 
-<form action="{{ route('settings.update') }}" method="POST">
+<form action="{{ route('settings.update') }}" method="POST" enctype="multipart/form-data">
     @csrf
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {{-- Branding: Logo & Cover Photo --}}
+        <div class="bg-white rounded-xl border p-5 lg:col-span-2">
+            <h3 class="text-sm font-bold text-gray-900 mb-1">Branding</h3>
+            <p class="text-xs text-gray-500 mb-4">This is what customers see the moment they scan your table QR code.</p>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                {{-- Logo --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Restaurant Logo</label>
+                    <label for="logoInput" class="cursor-pointer group relative flex items-center justify-center w-24 h-24 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 overflow-hidden hover:border-emerald-400 transition-colors">
+                        <img id="logoPreview" src="{{ $restaurant->logo ? asset($restaurant->logo) : '' }}" class="w-full h-full object-cover {{ $restaurant->logo ? '' : 'hidden' }}">
+                        <span id="logoPlaceholder" class="text-[10px] font-medium text-gray-400 text-center px-2 {{ $restaurant->logo ? 'hidden' : '' }}">
+                            <svg class="w-6 h-6 mx-auto mb-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 8h.01M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+                            Upload logo
+                        </span>
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="text-white text-[10px] font-bold">Change</span>
+                        </div>
+                    </label>
+                    <input type="file" id="logoInput" name="logo" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewImage(this, 'logoPreview', 'logoPlaceholder')">
+                    <p class="text-[10px] text-gray-400 mt-1.5">Square image works best &middot; max 2MB</p>
+                </div>
+
+                {{-- Cover Photo --}}
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Cover Photo</label>
+                    <label for="coverInput" class="cursor-pointer group relative flex items-center justify-center w-full h-24 rounded-2xl border-2 border-dashed border-gray-300 bg-gray-50 overflow-hidden hover:border-emerald-400 transition-colors">
+                        <img id="coverPreview" src="{{ $restaurant->cover_image ? asset($restaurant->cover_image) : '' }}" class="w-full h-full object-cover {{ $restaurant->cover_image ? '' : 'hidden' }}">
+                        <span id="coverPlaceholder" class="text-[10px] font-medium text-gray-400 text-center px-2 {{ $restaurant->cover_image ? 'hidden' : '' }}">
+                            <svg class="w-6 h-6 mx-auto mb-1 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14M4 8h.01M4 4h16a2 2 0 012 2v12a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2z"/></svg>
+                            Upload cover photo
+                        </span>
+                        <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                            <span class="text-white text-[10px] font-bold">Change</span>
+                        </div>
+                    </label>
+                    <input type="file" id="coverInput" name="cover_image" accept="image/png,image/jpeg,image/webp" class="hidden" onchange="previewImage(this, 'coverPreview', 'coverPlaceholder')">
+                    <p class="text-[10px] text-gray-400 mt-1.5">Wide image works best &middot; max 4MB</p>
+                </div>
+            </div>
+        </div>
+
         {{-- Restaurant Info --}}
         <div class="bg-white rounded-xl border p-5">
             <h3 class="text-sm font-bold text-gray-900 mb-4">Restaurant Information</h3>
@@ -128,6 +169,21 @@
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
 <script>
+// Instant local preview of a chosen logo/cover photo before the form is saved.
+function previewImage(input, previewId, placeholderId) {
+    const file = input.files && input.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        const img = document.getElementById(previewId);
+        const placeholder = document.getElementById(placeholderId);
+        img.src = e.target.result;
+        img.classList.remove('hidden');
+        placeholder.classList.add('hidden');
+    };
+    reader.readAsDataURL(file);
+}
+
 const REST_LINK = '{{ url('/r/' . $restaurant->slug) }}';
 
 new QRCode(document.getElementById('restQR'), {
@@ -141,7 +197,7 @@ new QRCode(document.getElementById('restQR'), {
 
 function copyLink() {
     navigator.clipboard.writeText(REST_LINK).then(() => {
-        Swal.fire({ toast: true, position: 'top-end', icon: 'success', title: 'Link copied!', showConfirmButton: false, timer: 2000 });
+        restoraToast('success', 'Link copied!');
     });
 }
 
